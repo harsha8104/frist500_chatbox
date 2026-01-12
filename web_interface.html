@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuraQuery AI | Intelligent RAG Assistant</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%236366f1'/><text x='50' y='65' font-family='Arial' font-size='50' fill='white' text-anchor='middle'>AI</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #10b981;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --gray: #6b7280;
+            --gray-light: #e5e7eb;
+            --gray-dark: #374151;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --card-bg: rgba(255, 255, 255, 0.92);
+            --sidebar-bg: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --border-radius: 16px;
+            --border-radius-sm: 10px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f0f4ff 0%, #f8fafc 100%);
+            min-height: 100vh;
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 200" opacity="0.1"><path d="M0,100 C150,200 350,0 500,100 C650,200 850,0 1000,100 L1000,200 L0,200 Z" fill="white"/></svg>');
+            background-size: cover;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 1;
+        }
+
+        .logo-icon {
+            background: rgba(255, 255, 255, 0.2);
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .logo-text h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text p {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 10px 20px;
+            border-radius: 50px;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--secondary);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 0;
+            min-height: 700px;
+        }
+
+        .sidebar {
+            background: var(--sidebar-bg);
+            padding: 30px;
+            border-right: 1px solid var(--gray-light);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .section {
+            background: white;
+            border-radius: var(--border-radius-sm);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-light);
+        }
+
+        .section h3 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--dark);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .section h3 i {
+            color: var(--primary);
+        }
+
+        .document-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .document-card {
+            background: var(--light);
+            border: 1px solid var(--gray-light);
+            border-radius: 12px;
+            padding: 18px;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .document-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary-light);
+        }
+
+        .document-card.active {
+            border-color: var(--primary);
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+        }
+
+        .document-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .document-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .document-title {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+
+        .document-meta {
+            font-size: 12px;
+            color: var(--gray);
+            display: flex;
+            gap: 15px;
+        }
+
+        .document-size {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        .chat-header {
+            padding: 25px 30px;
+            border-bottom: 1px solid var(--gray-light);
+            background: var(--light);
+        }
+
+        .chat-header h2 {
+            font-size: 20px;
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+        }
+
+        .message {
+            display: flex;
+            gap: 15px;
+            max-width: 85%;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            box-shadow: var(--shadow);
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, var(--secondary) 0%, #0da271 100%);
+            color: white;
+        }
+
+        .message-content {
+            padding: 20px;
+            border-radius: 18px;
+            position: relative;
+            box-shadow: var(--shadow);
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.assistant .message-content {
+            background: white;
+            border: 1px solid var(--gray-light);
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-text {
+            line-height: 1.7;
+            word-wrap: break-word;
+        }
+
+        .message.assistant .message-text {
+            color: var(--dark);
+        }
+
+        .message-sources {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.3);
+        }
+
+        .message.user .message-sources {
+            border-top-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .message.assistant .message-sources {
+            border-top-color: var(--gray-light);
+        }
+
+        .sources-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            opacity: 0.7;
+        }
+
+        .source-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .source-tag {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .message.user .source-tag {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .message-time {
+            font-size: 11px;
+            opacity: 0.6;
+            margin-top: 10px;
+            text-align: right;
+        }
+
+        .confidence-meter {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .input-area {
+            padding: 25px 30px;
+            border-top: 1px solid var(--gray-light);
+            background: white;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            background: var(--light);
+            border: 2px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            padding: 5px;
+            transition: var(--transition);
+        }
+
+        .input-container:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .message-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 18px 20px;
+            font-size: 15px;
+            resize: none;
+            outline: none;
+            max-height: 150px;
+            font-family: inherit;
+            line-height: 1.6;
+        }
+
+        .message-input::placeholder {
+            color: var(--gray);
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            width: 52px;
+            height: 52px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: var(--transition);
+            flex-shrink: 0;
+            box-shadow: var(--shadow);
+        }
+
+        .send-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .action-button {
+            background: white;
+            border: 1px solid var(--gray-light);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--gray);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .welcome-state {
+            text-align: center;
+            padding: 60px 30px;
+            background: linear-gradient(180deg, #fafafa 0%, white 100%);
+            border-radius: var(--border-radius);
+            margin: 30px;
+        }
+
+        .welcome-icon {
+            font-size: 64px;
+            margin-bottom: 25px;
+            color: var(--primary);
+        }
+
+        .welcome-state h3 {
+            font-size: 28px;
+            color: var(--dark);
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .welcome-state p {
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto 30px;
+            font-size: 16px;
+        }
+
+        .quick-questions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .quick-question {
+            background: white;
+            border: 1px solid var(--gray-light);
+            padding: 18px;
+            border-radius: 12px;
+            text-align: left;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .quick-question:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .quick-question i {
+            color: var(--primary);
+            font-size: 20px;
+            margin-top: 2px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid var(--gray-light);
+        }
+
+        .stat {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 20px;
+            background: white;
+            border: 1px solid var(--gray-light);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+            align-self: flex-start;
+            max-width: 200px;
+        }
+
+        .typing-indicator.active {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: var(--primary-light);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius-sm);
+            box-shadow: var(--shadow-lg);
+            border-left: 4px solid var(--primary);
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            max-width: 350px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .notification-message {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .notification-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 300px 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .header {
+                padding: 20px;
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .chat-messages {
+                padding: 20px;
+            }
+            
+            .message {
+                max-width: 95%;
+            }
+            
+            .quick-questions {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .theme-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+            transition: var(--transition);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>NeuraQuery AI</h1>
+                    <p>Intelligent Document Intelligence with RAG</p>
+                </div>
+            </div>
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span>System Online</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="section">
+                    <h3><i class="fas fa-database"></i> Knowledge Base</h3>
+                    <div class="document-grid" id="documentList">
+                        <!-- Documents will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                    <div class="document-grid">
+                        <div class="document-card" onclick="quickAction('summary')">
+                            <div class="document-header">
+                                <div class="document-icon">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <span class="confidence-meter">Auto</span>
+                            </div>
+                            <div class="document-title">Generate Summary</div>
+                            <div class="document-meta">
+                                <span class="document-size">
+                                    <i class="fas fa-magic"></i>
+                                    Smart analysis
+                                </span>
+                            </div>
+                        </div>
+                        <div class="document-card" onclick="quickAction('search')">
+                            <div class="document-header">
+                                <div class="document-icon">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <span class="confidence-meter">Deep</span>
+                            </div>
+                            <div class="document-title">Advanced Search</div>
+                            <div class="document-meta">
+                                <span class="document-size">
+                                    <i class="fas fa-layer-group"></i>
+                                    Cross-document
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3><i class="fas fa-chart-line"></i> Analytics</h3>
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="stat-value" id="docCount">5</div>
+                            <div class="stat-label">Documents</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="queryCount">0</div>
+                            <div class="stat-label">Queries</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="accuracyRate">98%</div>
+                            <div class="stat-label">Accuracy</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Chat Area -->
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h2><i class="fas fa-comments"></i> AI Assistant Chat</h2>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="welcome-state" id="welcomeState">
+                        <div class="welcome-icon">
+                            <i class="fas fa-comment-dots"></i>
+                        </div>
+                        <h3>Welcome to NeuraQuery AI</h3>
+                        <p>Ask me anything about your documents. I can summarize, search, and provide insights using advanced RAG technology.</p>
+                        
+                        <div class="quick-questions">
+                            <div class="quick-question" onclick="sendExampleQuestion('Summarize the main policies')">
+                                <i class="fas fa-file-contract"></i>
+                                <div>
+                                    <strong>Policy Summary</strong>
+                                    <div style="font-size: 12px; color: var(--gray); margin-top: 4px;">Get overview of company policies</div>
+                                </div>
+                            </div>
+                            <div class="quick-question" onclick="sendExampleQuestion('Explain employee benefits')">
+                                <i class="fas fa-hand-holding-heart"></i>
+                                <div>
+                                    <strong>Benefits Overview</strong>
+                                    <div style="font-size: 12px; color: var(--gray); margin-top: 4px;">Understand employee benefits</div>
+                                </div>
+                            </div>
+                            <div class="quick-question" onclick="sendExampleQuestion('What are the security requirements?')">
+                                <i class="fas fa-shield-alt"></i>
+                                <div>
+                                    <strong>Security Guide</strong>
+                                    <div style="font-size: 12px; color: var(--gray); margin-top: 4px;">Learn security protocols</div>
+                                </div>
+                            </div>
+                            <div class="quick-question" onclick="sendExampleQuestion('How does CloudSync work?')">
+                                <i class="fas fa-cloud"></i>
+                                <div>
+                                    <strong>CloudSync Guide</strong>
+                                    <div style="font-size: 12px; color: var(--gray); margin-top: 4px;">Technical documentation</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="typing-indicator" id="typingIndicator">
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 14px; color: var(--gray);">Processing your query...</div>
+                </div>
+
+                <div class="input-area">
+                    <div class="input-container">
+                        <textarea 
+                            class="message-input" 
+                            id="messageInput" 
+                            placeholder="Ask me anything about your documents... (Press Enter to send, Shift+Enter for new line)"
+                            rows="1"
+                        ></textarea>
+                        <button class="send-button" id="sendButton" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <div class="input-actions">
+                        <button class="action-button" onclick="clearChat()">
+                            <i class="fas fa-trash-alt"></i>
+                            Clear Chat
+                        </button>
+                        <button class="action-button" onclick="toggleDocuments()">
+                            <i class="fas fa-eye"></i>
+                            Toggle Docs
+                        </button>
+                        <button class="action-button" onclick="exportChat()">
+                            <i class="fas fa-download"></i>
+                            Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        <button class="notification-close" onclick="hideNotification()" aria-label="Close notification">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="notification-title" id="notificationTitle">Notification</div>
+        <div class="notification-message" id="notificationMessage">Message content</div>
+    </div>
+
+    <div class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-palette"></i>
+    </div>
+
+    <script>
+        // Global state
+        let sessionId = null;
+        let isProcessing = false;
+        let queryCount = 0;
+        let activeDocuments = [];
+        let isDarkTheme = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            generateSessionId();
+            loadDocuments();
+            setupEventListeners();
+            showNotification('Welcome!', 'AI Assistant is ready to help with your documents.');
+        }
+
+        function generateSessionId() {
+            sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function setupEventListeners() {
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+            });
+
+            // Auto-focus input
+            messageInput.focus();
+        }
+
+        async function loadDocuments() {
+            const documents = [
+                { 
+                    id: 1,
+                    title: 'Remote Work Policy', 
+                    size: '2.8 KB',
+                    icon: 'fa-home',
+                    color: '#6366f1',
+                    category: 'HR',
+                    lastUpdated: '2024-01-15'
+                },
+                { 
+                    id: 2,
+                    title: 'Employee Benefits', 
+                    size: '3.2 KB',
+                    icon: 'fa-heart',
+                    color: '#10b981',
+                    category: 'HR',
+                    lastUpdated: '2024-01-10'
+                },
+                { 
+                    id: 3,
+                    title: 'Security Policy', 
+                    size: '2.1 KB',
+                    icon: 'fa-shield-alt',
+                    color: '#ef4444',
+                    category: 'IT',
+                    lastUpdated: '2024-01-12'
+                },
+                { 
+                    id: 4,
+                    title: 'CloudSync Guide', 
+                    size: '1.9 KB',
+                    icon: 'fa-cloud',
+                    color: '#0ea5e9',
+                    category: 'Tech',
+                    lastUpdated: '2024-01-05'
+                },
+                { 
+                    id: 5,
+                    title: 'API Documentation', 
+                    size: '2.4 KB',
+                    icon: 'fa-code',
+                    color: '#8b5cf6',
+                    category: 'Tech',
+                    lastUpdated: '2024-01-08'
+                }
+            ];
+
+            displayDocuments(documents);
+        }
+
+        function displayDocuments(documents) {
+            const container = document.getElementById('documentList');
+            container.innerHTML = '';
+
+            documents.forEach(doc => {
+                const card = document.createElement('div');
+                card.className = 'document-card';
+                card.dataset.id = doc.id;
+                card.onclick = () => toggleDocumentSelection(doc.id);
+                
+                card.innerHTML = `
+                    <div class="document-header">
+                        <div class="document-icon" style="background: ${doc.color}">
+                            <i class="fas ${doc.icon}"></i>
+                        </div>
+                        <span class="confidence-meter">${doc.category}</span>
+                    </div>
+                    <div class="document-title">${doc.title}</div>
+                    <div class="document-meta">
+                        <span class="document-size">
+                            <i class="fas fa-weight"></i>
+                            ${doc.size}
+                        </span>
+                        <span class="document-size">
+                            <i class="fas fa-calendar-alt"></i>
+                            ${doc.lastUpdated}
+                        </span>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        function toggleDocumentSelection(docId) {
+            const index = activeDocuments.indexOf(docId);
+            if (index === -1) {
+                activeDocuments.push(docId);
+            } else {
+                activeDocuments.splice(index, 1);
+            }
+            
+            // Update UI
+            const cards = document.querySelectorAll('.document-card');
+            cards.forEach(card => {
+                if (card.dataset.id === docId.toString()) {
+                    card.classList.toggle('active');
+                }
+            });
+        }
+
+        async function sendMessage() {
+            if (isProcessing) return;
+
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+
+            if (!message) return;
+
+            // Hide welcome state
+            const welcomeState = document.getElementById('welcomeState');
+            if (welcomeState) {
+                welcomeState.style.display = 'none';
+            }
+
+            // Add user message
+            addMessageToChat(message, 'user');
+
+            // Clear input
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            messageInput.focus();
+
+            // Set processing state
+            setProcessingState(true);
+
+            // Update stats
+            queryCount++;
+            document.getElementById('queryCount').textContent = queryCount;
+
+            // Simulate API call with enhanced responses
+            setTimeout(async () => {
+                try {
+                    const response = await processQuery(message);
+                    addMessageToChat(response.answer, 'assistant', {
+                        sources: response.sources,
+                        confidence: response.confidence
+                    });
+                } catch (error) {
+                    console.error('Error:', error);
+                    addMessageToChat("I apologize, but I encountered an error processing your request. Please try again.", 'assistant');
+                } finally {
+                    setProcessingState(false);
+                }
+            }, 1500 + Math.random() * 1000);
+        }
+
+        async function processQuery(query) {
+            // Enhanced demo responses with better formatting
+            const responses = {
+                'remote work policy': {
+                    answer: `**Remote Work Policy Overview**\n\nOur company allows employees to work remotely up to **3 days per week** with manager approval. Full-time remote work is available for senior roles (2+ years tenure).\n\n**Key Requirements:**\n• Stable internet connection\n• Dedicated workspace\n• Regular check-ins via Teams\n• Core hours: 10 AM - 3 PM (flexible)\n\n**Equipment:** Company provides laptop, monitor, and necessary software.`,
+                    sources: ['remote_work_policy_v2.pdf', 'hr_guidelines.docx'],
+                    confidence: 0.95
+                },
+                'employee benefits': {
+                    answer: `**Employee Benefits Package**\n\n**Healthcare:** Comprehensive medical, dental, and vision insurance with 80% company contribution.\n\n**Retirement:** 401(k) with 5% company match, immediate vesting.\n\n**Time Off:**\n• 20 PTO days annually\n• 12 paid holidays\n• Unlimited sick days\n• 12 weeks parental leave\n\n**Professional Development:** $2,000 annual budget for courses, conferences, and certifications.`,
+                    sources: ['benefits_handbook.pdf', 'compensation_guide.docx'],
+                    confidence: 0.92
+                },
+                'security requirements': {
+                    answer: `**Security Requirements & Best Practices**\n\n**Authentication:**\n• Mandatory 2FA for all systems\n• Minimum 12-character passwords\n• Biometric authentication for mobile\n\n**Data Protection:**\n• End-to-end encryption\n• Regular security training (quarterly)\n• VPN required for remote access\n\n**Compliance:** All employees must complete annual security certification and adhere to GDPR and SOC2 standards.`,
+                    sources: ['security_policy.pdf', 'compliance_guide.docx'],
+                    confidence: 0.98
+                },
+                'cloudsync': {
+                    answer: `**CloudSync Platform Guide**\n\n**Overview:** CloudSync is our enterprise-grade file synchronization service with real-time collaboration features.\n\n**Key Features:**\n• **Auto-sync:** Real-time file synchronization across devices\n• **Version Control:** 30-day version history with rollback\n• **Security:** AES-256 encryption, zero-knowledge architecture\n• **Collaboration:** Simultaneous editing, comments, task assignment\n\n**Storage Limits:**\n• Basic: 50GB/user\n• Pro: 1TB/user\n• Enterprise: Unlimited`,
+                    sources: ['cloudsync_manual.pdf', 'technical_docs.zip'],
+                    confidence: 0.89
+                },
+                'api documentation': {
+                    answer: `**API Documentation Summary**\n\n**Base URL:** 'https://api.company.com/v1'\n\n**Authentication:**\n• Bearer token required in Authorization header\n• Token lifetime: 24 hours\n\n**Key Endpoints:**\n• 'GET /users' - List users\n• 'POST /data' - Create record\n• 'PUT /data/{id}' - Update record\n• 'DELETE /data/{id}' - Delete record\n\n**Rate Limits:** 100 requests/minute per API key\n\n**Response Format:** All endpoints return JSON with standardized error codes.`,
+                    sources: ['api_reference.pdf', 'developer_guide.md'],
+                    confidence: 0.91
+                }
+            };
+
+            const queryLower = query.toLowerCase();
+            let bestMatch = null;
+            let highestScore = 0;
+
+            // Simple keyword matching
+            for (const [key, response] of Object.entries(responses)) {
+                const keywords = key.split(' ');
+                const score = keywords.filter(kw => queryLower.includes(kw)).length / keywords.length;
+                
+                if (score > highestScore && score > 0.3) {
+                    highestScore = score;
+                    bestMatch = response;
+                }
+            }
+
+            if (bestMatch) {
+                return {
+                    answer: bestMatch.answer,
+                    sources: bestMatch.sources,
+                    confidence: bestMatch.confidence,
+                    session_id: sessionId,
+                    timestamp: new Date().toISOString()
+                };
+            }
+
+            // Default response for unknown queries
+            return {
+                answer: `I understand you're asking about "${query}". While I couldn't find exact information, here are related topics I can help with:\n\n• Remote work policies and guidelines\n• Employee benefits and compensation\n• Security protocols and requirements\n• CloudSync functionality and usage\n• API documentation and integration\n\nCould you please rephrase or ask about one of these specific areas?`,
+                sources: ['general_knowledge_base'],
+                confidence: 0.4,
+                session_id: sessionId,
+                timestamp: new Date().toISOString()
+            };
+        }
+
+        function sendExampleQuestion(question) {
+            document.getElementById('messageInput').value = question;
+            sendMessage();
+        }
+
+        function quickAction(action) {
+            const actions = {
+                'summary': 'Generate a comprehensive summary of all company policies',
+                'search': 'Search across all documents for specific information'
+            };
+            
+            if (actions[action]) {
+                sendExampleQuestion(actions[action]);
+            }
+        }
+
+        function addMessageToChat(content, sender, metadata = {}) {
+            const chatMessages = document.getElementById('chatMessages');
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            // Format content with markdown-like syntax
+            let formattedContent = content
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>')
+                .replace(/•/g, '•');
+            
+            contentDiv.innerHTML = `
+                <div class="message-text">${formattedContent}</div>
+                ${metadata.sources ? `
+                <div class="message-sources">
+                    <div class="sources-title">Sources</div>
+                    <div class="source-tags">
+                        ${metadata.sources.map(src => `<span class="source-tag">${src}</span>`).join('')}
+                    </div>
+                </div>
+                ` : ''}
+                <div class="message-time">
+                    ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    ${metadata.confidence ? `<span class="confidence-meter">${Math.round(metadata.confidence * 100)}% confidence</span>` : ''}
+                </div>
+            `;
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Hide typing indicator
+            document.getElementById('typingIndicator').classList.remove('active');
+        }
+
+        function setProcessingState(processing) {
+            isProcessing = processing;
+            const sendButton = document.getElementById('sendButton');
+            const messageInput = document.getElementById('messageInput');
+            const typingIndicator = document.getElementById('typingIndicator');
+            
+            if (processing) {
+                sendButton.disabled = true;
+                messageInput.disabled = true;
+                typingIndicator.classList.add('active');
+                
+                // Scroll to show typing indicator
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } else {
+                sendButton.disabled = false;
+                messageInput.disabled = false;
+                messageInput.focus();
+                typingIndicator.classList.remove('active');
+            }
+        }
+
+        function clearChat() {
+            if (confirm('Are you sure you want to clear the chat history?')) {
+                const chatMessages = document.getElementById('chatMessages');
+                const welcomeState = document.getElementById('welcomeState');
+                
+                chatMessages.innerHTML = '';
+                if (welcomeState) {
+                    welcomeState.style.display = 'block';
+                }
+                
+                showNotification('Chat Cleared', 'Chat history has been cleared successfully.');
+            }
+        }
+
+        function toggleDocuments() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.style.display = sidebar.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        function exportChat() {
+            const messages = document.querySelectorAll('.message');
+            let exportText = 'NeuraQuery AI Chat Export\n\n';
+            
+            messages.forEach(msg => {
+                const sender = msg.classList.contains('user') ? 'You' : 'AI Assistant';
+                const content = msg.querySelector('.message-text').textContent;
+                exportText += `${sender}: ${content}\n\n`;
+            });
+            
+            const blob = new Blob([exportText], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `chat_export_${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            showNotification('Export Complete', 'Chat history has been downloaded.');
+        }
+
+        function showNotification(title, message) {
+            const notification = document.getElementById('notification');
+            document.getElementById('notificationTitle').textContent = title;
+            document.getElementById('notificationMessage').textContent = message;
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+
+        function hideNotification() {
+            document.getElementById('notification').classList.remove('show');
+        }
+
+        function toggleTheme() {
+            isDarkTheme = !isDarkTheme;
+            
+            if (isDarkTheme) {
+                document.documentElement.style.setProperty('--dark', '#f9fafb');
+                document.documentElement.style.setProperty('--light', '#1f2937');
+                document.documentElement.style.setProperty('--gray-light', '#374151');
+                document.documentElement.style.setProperty('--card-bg', 'rgba(31, 41, 55, 0.95)');
+                document.body.style.background = 'linear-gradient(135deg, #111827 0%, #1f2937 100%)';
+                showNotification('Theme Changed', 'Switched to dark mode');
+            } else {
+                document.documentElement.style.setProperty('--dark', '#1f2937');
+                document.documentElement.style.setProperty('--light', '#f9fafb');
+                document.documentElement.style.setProperty('--gray-light', '#e5e7eb');
+                document.documentElement.style.setProperty('--card-bg', 'rgba(255, 255, 255, 0.92)');
+                document.body.style.background = 'linear-gradient(135deg, #f0f4ff 0%, #f8fafc 100%)';
+                showNotification('Theme Changed', 'Switched to light mode');
+            }
+        }
+    </script>
+</body>
+</html>
